@@ -4,7 +4,7 @@ import { join, dirname } from 'path'
 import request from 'supertest'
 import { mkdirSync, readdirSync, rmdirSync } from 'fs';
 
-describe('koa-body', () => {
+describe('agnostic-body', () => {
   function createApp(bodyOpts = {}) {
     const server = http.createServer(async (request, response) => {
       try {
