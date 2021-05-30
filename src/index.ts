@@ -1,5 +1,5 @@
 /**
- * @grandjs/body
+ * @3imed-jaberi/body
  *
  * Copyright(c) 2021 Imed Jaberi
  * MIT Licensed
@@ -8,15 +8,13 @@
 'use strict'
 
 /**
-* Module dependencies.
-*/
+ * Module dependencies.
+ */
 
 import { IncomingMessage } from 'http'
 import buddy from 'co-body'
 import forms, { Files, Options } from 'formidable'
 import typeIs from 'type-is'
-
-const symbolUnparsed = Symbol.for('unparsedBody')
 
 interface Request extends IncomingMessage {
   body?: any;
@@ -29,7 +27,7 @@ interface BodyOptions {
   json?: boolean
   text?: boolean
   encoding?: string
-  jsonLimit?: string
+  jsonLimit?: number|string
   jsonStrict?: boolean
   formLimit?: string
   queryString?: string|null
@@ -40,12 +38,13 @@ interface BodyOptions {
 }
 
 /**
-*
-* @param {Object} options
-* @see https://github.com/dlau/koa-body
-* @api public
-*/
+ * full-featured agnostic body parser 🦄. 
+ *
+ * @param {Object} options
+ * @api public
+ */
 function requestBody(opts: BodyOptions = {}) {
+  // determine the options fields.
   opts.multipart = opts.multipart || false
   opts.urlencoded = opts.urlencoded || true
   opts.json = opts.json || true
@@ -58,10 +57,10 @@ function requestBody(opts: BodyOptions = {}) {
   opts.formidable = opts.formidable || {}
   opts.includeUnparsed = opts.includeUnparsed || false
   opts.textLimit =   opts.textLimit || '56kb'
-  // defaultParsedMethods = ['POST', 'PUT', 'PATCH', 'GET', 'HEAD', 'DELETE']
   opts.parsedMethods = opts.parsedMethods || ['POST', 'PUT', 'PATCH']
   opts.parsedMethods = opts.parsedMethods.map(method => method.toUpperCase())
 
+  // co-body parser options [json, form, text].
   const buddyOptions = {
     json: {
       encoding: opts.encoding,
@@ -81,13 +80,13 @@ function requestBody(opts: BodyOptions = {}) {
       returnRawBody: opts.includeUnparsed
     }
   }
-  
+
   return async function (request: Request) {    
-    //
+    // co-body parsers [json, form, text].
     const buddyParser = (type) => buddy[type](request, buddyOptions[type])
     
-    //
-    const formy = (request, opts): Promise<unknown> => {
+    // formidable parser [multipart].
+    const formyParser = (request, opts): Promise<unknown> => {
       return new Promise(function (resolve, reject) {
         let fields = {}
         let files = {}
@@ -95,7 +94,6 @@ function requestBody(opts: BodyOptions = {}) {
 
         form.on('field', (field, value) => {
           if (fields[field]) {
-            // fields[field].push(value)
             fields[field] = Array.isArray(fields[field]) 
               ? [...fields[field], value]
               : [fields[field], value]
@@ -106,8 +104,7 @@ function requestBody(opts: BodyOptions = {}) {
         
         form.on('file', (field, file) => {
           if (files[field]) {
-            // files[field].push(value)
-            files[field] = Array.isArray(files[field]) 
+            files[field] = Array.isArray(files[field])
               ? [...files[field], file]
               : [files[field], file]
           } else {
@@ -126,71 +123,59 @@ function requestBody(opts: BodyOptions = {}) {
       })
     }
 
-    //
-    const getType = () => {
-      //
-      const jsonTypes = [
-        'application/json',
-        'application/json-patch+json',
-        'application/vnd.api+json',
-        'application/csp-report'
-      ]
-        
-      //
-      const is = (type, ...types) => typeIs(request, type, ...types);
-      console.log("........", is('multipart'));
-
-      return (
-        (opts.json && is(jsonTypes))
-          ? "json" 
-          : (opts.urlencoded && is('urlencoded'))
-            ? "form"
-            : (opts.text && (is('text/*') || is('xml')))
-              ? "text"
-              : (opts.multipart && is('multipart')) 
-                ? "multipart" 
-                : undefined
-      )
-    }
-    
-    
-    const type = getType()
-    let bodyPromise
-
     // only parse the body on specifically chosen methods.
     if (opts.parsedMethods?.includes(request?.method as string)) {
       try {
-        bodyPromise = () => (
+        // extract the right type of the request payload.
+        const type = (() => {
+          // content types used as json.
+          const jsonTypes = [
+            'application/json',
+            'application/json-patch+json',
+            'application/vnd.api+json',
+            'application/csp-report'
+          ]
+          
+          // helper function to check types from the request content type header.
+          const is = (type, ...types) => typeIs(request, type, ...types);
+    
+          return (
+            (opts.json && is(jsonTypes))
+              ? "json" 
+              : (opts.urlencoded && is('urlencoded'))
+                ? "form"
+                : (opts.text && (is('text/*') || is('xml')))
+                  ? "text"
+                  : (opts.multipart && is('multipart')) 
+                    ? "multipart" 
+                    : undefined
+          )
+        })()
+
+        // choose the correct parser.
+        const bodyParser = () => (
           type === 'multipart'
-            ?  formy(request, opts.formidable)
+            ?  formyParser(request, opts.formidable)
             :  !type
               ? Promise.resolve({})
               : buddyParser(type) 
         )
+
+        // parse the request.
+        const body = await bodyParser()
+
+        // merge the parsed result with the Node.js request object.
+        if (type === 'multipart') {
+          request.body = body.fields
+          request.files = body.files
+        } else {
+          request.body = body
+        }
+
+        return request
       } catch (error) {
           throw error
       }
-    }
-
-    try {
-      const type = getType()
-      const body = await bodyPromise()
-      console.log("--------", type);
-      
-      if (type === 'multipart') {
-        request.body = body.fields
-        request.files = body.files
-      } else if (opts.includeUnparsed) {
-        request.body = body.parsed || {}
-        if (type !== 'text')
-          request.body[symbolUnparsed] = body.raw
-      } else {
-        request.body = body
-      }
-    
-      return request
-    } catch (error) {
-        throw error
     }
   }
 }
