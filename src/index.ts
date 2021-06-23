@@ -1,5 +1,5 @@
 /**
- * @3imed-jaberi/body
+ * @macchiatojs/body
  *
  * Copyright(c) 2021 Imed Jaberi
  * MIT Licensed
