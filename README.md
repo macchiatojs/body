@@ -1,6 +1,6 @@
-# agnostic-body
+# @macchiatojs/body
 
-> A full-featured `omda` body parser middleware. Supports `multipart`, `urlencoded`, and `json` request bodies. Provides the same functionality as Express's bodyParser - [`multer`](https://github.com/expressjs/multer).
+> A full-featured `@macchiatojs` body parser middleware. Supports `multipart`, `urlencoded`, and `json` request bodies. Provides the same functionality as Express's bodyParser - [`multer`](https://github.com/expressjs/multer).
 
 ## `Features`
 
@@ -20,16 +20,16 @@
 
 ```bash
 # npm
-$ npm install agnostic-body
+$ npm install @macchiatojs/body
 # yarn
-$ yarn add agnostic-body
+$ yarn add @macchiatojs/body
 ```
 
 ## `Usage`
 
 ```typescript
 import http from "http";
-import requestBody from "agnostic-body";
+import requestBody from "@macchiatojs/body";
 
 const server = http.createServer(async (request, response) => {
   try {
@@ -50,7 +50,7 @@ server.listen(1111);
 
 ## `Options`
 
-> Options available for `agnostic-body`. Four custom options, and others are from `raw-body` and `formidable`.
+> Options available for `@macchiatojs/body`. Four custom options, and others are from `raw-body` and `formidable`.
 
 - `jsonLimit` **{String|Integer}** The byte (if integer) limit of the JSON body, default `1mb`
 - `formLimit` **{String|Integer}** The byte (if integer) limit of the form body, default `56kb`
@@ -69,7 +69,7 @@ server.listen(1111);
 > see [http://tools.ietf.org/html/draft-ietf-httpbis-p2-semantics-19#section-6.3](http://tools.ietf.org/html/draft-ietf-httpbis-p2-semantics-19#section-6.3)
 
 - `GET`, `HEAD`, and `DELETE` requests have no defined semantics for the request body, but this doesn't mean they may not be valid in certain use cases.
-- agnostic-body is strict by default, parsing only `POST`, `PUT`, and `PATCH` requests.
+- @macchiatojs/body is strict by default, parsing only `POST`, `PUT`, and `PATCH` requests.
 
 <!--
 ## File Support
