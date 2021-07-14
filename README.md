@@ -25,7 +25,27 @@ $ npm install @macchiatojs/body
 $ yarn add @macchiatojs/body
 ```
 
+> When use this module with raw Node.js should insall an additional module `type-is`.
+
 ## `Usage`
+
+with Macchiato.js
+
+```typescript
+import Macchiato from "@macchiatojs/kernel";
+import requestBody from "@macchiatojs/body";
+
+const app = new Macchiato();
+
+app.use(requestBody(bodyOpts));
+app.use((request: Request, response: Response) => {
+  response.body = request["body"];
+});
+
+app.start(1111);
+```
+
+with raw Node.js
 
 ```typescript
 import http from "http";
@@ -33,9 +53,9 @@ import requestBody from "@macchiatojs/body";
 
 const server = http.createServer(async (request, response) => {
   try {
-    const req = await requestBody()(request);
+    await requestBody()(request);
     response.statusCode = 200;
-    response.write(req?.body);
+    response.write(request?.body);
     response.end();
     return;
   } catch (error) {
@@ -52,6 +72,7 @@ server.listen(1111);
 
 > Options available for `@macchiatojs/body`. Four custom options, and others are from `raw-body` and `formidable`.
 
+- `expressify` **{Boolean}** Only with `Macchiato.js`; Choose the right middleware style (false ==> koaify / true ==> expressify), default `true`
 - `jsonLimit` **{String|Integer}** The byte (if integer) limit of the JSON body, default `1mb`
 - `formLimit` **{String|Integer}** The byte (if integer) limit of the form body, default `56kb`
 - `textLimit` **{String|Integer}** The byte (if integer) limit of the text body, default `56kb`
