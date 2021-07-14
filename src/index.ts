@@ -11,17 +11,28 @@
  * Module dependencies.
  */
 
-import { IncomingMessage } from 'http'
+import { IncomingMessage, ServerResponse } from 'http'
+import { Context, Request, Response, Next } from '@macchiatojs/kernel'
 import buddy from 'co-body'
 import forms, { Files, Options } from 'formidable'
-import typeIs from 'type-is'
+// peerDep. needed with raw Node.js
+import typeIs from 'type-is' 
 
-interface Request extends IncomingMessage {
+export interface MacchiatoRequest extends Request {
   body?: any;
   files?: Files;
 }
 
-interface BodyOptions {
+export interface RawRequest extends IncomingMessage {
+  body?: any;
+  files?: Files;
+}
+
+
+export type BodyRequest = RawRequest | MacchiatoRequest
+
+export interface BodyOptions {
+  expressify?: boolean
   multipart?: boolean
   urlencoded?: boolean
   json?: boolean
@@ -29,21 +40,21 @@ interface BodyOptions {
   encoding?: string
   jsonLimit?: number|string
   jsonStrict?: boolean
-  formLimit?: string
+  formLimit?: number|string
   queryString?: string|null
-  textLimit?: string
+  textLimit?: number|string
   formidable?: Options 
   includeUnparsed?: boolean
   parsedMethods?: string[]
 }
 
 /**
- * full-featured agnostic body parser 🦄. 
+ * full-featured body parser 🦄. 
  *
  * @param {Object} options
  * @api public
  */
-function requestBody(opts: BodyOptions = {}) {
+function coreRequestBody(opts: BodyOptions = {}) {
   // determine the options fields.
   opts.multipart = opts.multipart || false
   opts.urlencoded = opts.urlencoded || true
@@ -81,16 +92,20 @@ function requestBody(opts: BodyOptions = {}) {
     }
   }
 
-  return async function (request: Request) {    
+  //
+  return async (req: BodyRequest, next?: Next) => {    
+    // TODO: change req.raw with req.rawRequest
+    const request = req instanceof IncomingMessage ? req : req.raw
+
     // co-body parsers [json, form, text].
     const buddyParser = (type) => buddy[type](request, buddyOptions[type])
     
     // formidable parser [multipart].
     const formyParser = (request, opts): Promise<unknown> => {
       return new Promise(function (resolve, reject) {
-        let fields = {}
-        let files = {}
-        let form = new forms.IncomingForm(opts)
+        const fields = {}
+        const files = {}
+        const form = new forms.IncomingForm(opts)
 
         form.on('field', (field, value) => {
           if (fields[field]) {
@@ -125,59 +140,79 @@ function requestBody(opts: BodyOptions = {}) {
 
     // only parse the body on specifically chosen methods.
     if (opts.parsedMethods?.includes(request?.method as string)) {
-      try {
-        // extract the right type of the request payload.
-        const type = (() => {
-          // content types used as json.
-          const jsonTypes = [
-            'application/json',
-            'application/json-patch+json',
-            'application/vnd.api+json',
-            'application/csp-report'
-          ]
-          
-          // helper function to check types from the request content type header.
-          const is = (type, ...types) => typeIs(request, type, ...types);
-    
-          return (
-            (opts.json && is(jsonTypes))
-              ? "json" 
-              : (opts.urlencoded && is('urlencoded'))
-                ? "form"
-                : (opts.text && (is('text/*') || is('xml')))
-                  ? "text"
-                  : (opts.multipart && is('multipart')) 
-                    ? "multipart" 
-                    : undefined
-          )
-        })()
+      // extract the right type of the request payload.
+      const type = (() => {
+        // content types used as json.
+        const jsonTypes = [
+          'application/json',
+          'application/json-patch+json',
+          'application/vnd.api+json',
+          'application/csp-report'
+        ]
+        
+        // helper function to check types from the request content type header.
+        const is = (request instanceof Request) 
+          ? request.is 
+          : (type, ...types) => typeIs(request, type, ...types);
 
-        // choose the correct parser.
-        const bodyParser = () => (
-          type === 'multipart'
-            ?  formyParser(request, opts.formidable)
-            :  !type
-              ? Promise.resolve({})
-              : buddyParser(type) 
+        return (
+          (opts.json && is(jsonTypes))
+            ? "json" 
+            : (opts.urlencoded && is('urlencoded'))
+              ? "form"
+              : (opts.text && (is('text/*') || is('xml')))
+                ? "text"
+                : (opts.multipart && is('multipart')) 
+                  ? "multipart" 
+                  : undefined
         )
+      })()
 
-        // parse the request.
-        const body = await bodyParser()
+      // choose the correct parser.
+      const bodyParser = () => (
+        type === 'multipart'
+          ?  formyParser(request, opts.formidable)
+          :  !type
+            ? Promise.resolve({})
+            : buddyParser(type) 
+      )
 
-        // merge the parsed result with the Node.js request object.
-        if (type === 'multipart') {
-          request.body = body.fields
-          request.files = body.files
-        } else {
-          request.body = body
-        }
+      // parse the request.
+      const body = await bodyParser()
 
-        return request
-      } catch (error) {
-          throw error
+      // merge the parsed result with the Node.js request object.
+      if (type === 'multipart') {
+        request['body'] = body.fields
+        request['files'] = body.files
+      } else {
+        request['body'] = body
+      }
+
+      // when use macchiatojs with expressify and koaify
+      if(next) {
+        // mapped from rawRequest to request
+        req.body = request['body']
+        req.files = request['files']
+
+        // go to the next middleware
+        return next()
       }
     }
   }
+}
+
+// middleware/hook/helper for raw Node.js
+export function rawBody(opts: BodyOptions) {
+  return (request: IncomingMessage, response: ServerResponse) => coreRequestBody(opts)(request)
+}
+
+// middleware for Macchiato.js
+export function requestBody(opts: BodyOptions) {
+  opts.expressify = opts.expressify ?? true
+
+  return opts.expressify
+    ? (request: Request, response: Response, next: Next) => coreRequestBody(opts)(request, next)
+    : (context: Context, next: Next) => coreRequestBody(opts)(context.request, next)
 }
 
 /**
