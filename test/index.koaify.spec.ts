@@ -1,38 +1,31 @@
-import http from 'http';
-import requestBody from '../src'
+import Kernel, { Context } from '@macchiatojs/kernel';
+import { requestBody } from '../src'
 import { join, dirname } from 'path'
 import request from 'supertest'
 import { mkdirSync, readdirSync, rmdirSync } from 'fs';
 
 describe('agnostic-body', () => {
   function createApp(bodyOpts = {}) {
-    const server = http.createServer(async (request, response) => {
-      try {
-        const req = await requestBody(bodyOpts)(request)      
-        response.statusCode = 200
-        response.write(JSON.stringify(req?.body ?? String(req?.body)))
-        response.end()
-        return
-      } catch (error) {
-        response.statusCode = 500
-        response.end('some thing long ...')
-        return
-      }
-    })
-  
-    return server
+    const app = new Kernel({ expressify: false })
+    
+    app
+      .use(requestBody({ ...bodyOpts, expressify: false }))
+      .use((context: Context) => {
+        context.response.body = context.request['body']
+      })
+    
+    return app
   }
 
   // default method: post, put, patch.
   it('sould return undefined when use unsupported method', (done) => {
-    request(createApp())
+    request(createApp().start())
       .get('/')
-      .expect(/undefined/)
-      .expect(200, done);
+      .expect(200, '', done);
   })
 
   it('sould return parsed json when use supported method', (done) => {
-    request(createApp())
+    request(createApp().start())
       .post('/')
       .type('json')
       .send({ name: 'imed' })
@@ -42,7 +35,7 @@ describe('agnostic-body', () => {
   })
 
   it('sould return parsed form when use supported method', (done) => {
-    request(createApp())
+    request(createApp().start())
       .post('/')
       .type('form')
       .send({ name: 'imed' })
@@ -52,7 +45,7 @@ describe('agnostic-body', () => {
   })
 
   it('sould return parsed text when use supported method', (done) => {
-    request(createApp())
+    request(createApp().start())
       .post('/')
       .type('text')
       .send('imed')
@@ -62,7 +55,7 @@ describe('agnostic-body', () => {
   })
 
   it('sould return parsed html when use supported method', (done) => {
-    request(createApp())
+    request(createApp().start())
       .post('/')
       .type('html')
       .send('<h1>imed</h1>')
@@ -72,7 +65,7 @@ describe('agnostic-body', () => {
   })
 
   it('sould return parsed xml when use supported method', (done) => {
-    request(createApp())
+    request(createApp().start())
       .post('/')
       .type('xml')
       .send('<BUDDY>imed</BUDDY>')
@@ -82,7 +75,7 @@ describe('agnostic-body', () => {
   })
 
   it('sould return parsed multipart (fields) when use supported method and active it through options', (done) => {
-    request(createApp({ multipart: true }))
+    request(createApp({ multipart: true }).start())
       .post('/')
       .type('multipart')
       .field('name', 'imed')
@@ -107,7 +100,7 @@ describe('agnostic-body', () => {
         keepExtensions: true,
         uploadDir: './test/uploads'
       }
-    }))
+    }).start())
       .post('/')
       .type('multipart')
       .attach('firstField', 'package.json')
@@ -135,7 +128,7 @@ describe('agnostic-body', () => {
         keepExtensions: true,
         uploadDir: './test/uploads'
       }
-    }))
+    }).start())
       .post('/')
       .type('multipart')
       .attach('firstField', 'package.json')
@@ -172,7 +165,7 @@ describe('agnostic-body', () => {
           file.path = join(folder, file.name);
         }
       }
-    }))
+    }).start())
       .post('/')
       .type('multipart')
       .attach('firstField', 'package.json')
@@ -188,32 +181,32 @@ describe('agnostic-body', () => {
   })
 
   it('should limit the json respone', (done) => {
-    request(createApp({ jsonLimit: 10 /* bytes */ }))
+    request(createApp({ jsonLimit: 10 /* bytes */ }).start())
       .post('/')
       .type('json')
       .send({ name: 'some-long-name-for-limit' })
       // .expect('Content-Type', /json/)
-      .expect(/some thing long .../)
-      .expect(500, done)
+      .expect(/request entity too large/)
+      .expect(413, done)
   })
 
   it('should limit the form respone', (done) => {
-    request(createApp({ formLimit: 10 }))
+    request(createApp({ formLimit: 10 }).start())
     .post('/')
     .type('form')
     .send({ name: 'some-long-name-for-limit' })
     // .expect('Content-Type', /urlencoded/)
-    .expect(/some thing long .../)
-    .expect(500, done)
+    .expect(/request entity too large/)
+    .expect(413, done)
   })
 
   it('should limit the text respone', (done) => {
-    request(createApp({ textLimit: 10 }))
+    request(createApp({ textLimit: 10 }).start())
     .post('/')
     .type('text')
     .send('some-long-name-for-limit')
     // .expect('Content-Type', /text/)
-    .expect(/some thing long .../)
-    .expect(500, done)
+    .expect(/request entity too large/)
+    .expect(413, done)
   })
 })
