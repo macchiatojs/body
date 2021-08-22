@@ -1,5 +1,11 @@
 # CHANGE LOG
 
+### v0.3.0 (22 Aug 2021)
+
+- remove callbacks from tests
+- improve type support
+- use rmSync over rmdirSync --nodejs@16.
+
 ### v0.2.0 (15 Jul 2021)
 
 - add support for expressify with macchiato.js
