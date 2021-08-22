@@ -93,8 +93,9 @@ function coreRequestBody(opts: BodyOptions = {}) {
   }
 
   //
+  // FIXME: fix limit the json, form and text response when upgrade the kernel to v0.10.0
   return async (req: BodyRequest, next?: Next) => {    
-    // TODO: change req.raw with req.rawRequest
+    // FIXME: change req.raw with req.rawRequest
     const request = req instanceof IncomingMessage ? req : req.raw
 
     // co-body parsers [json, form, text].
