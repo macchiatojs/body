@@ -18,6 +18,8 @@ yarn.lock
 ###################
 coverage
 .nyc_output
+test/uploads/*.*
+!test/uploads/.gitkeep
 
 #      Build      #
 ###################
