@@ -1,5 +1,10 @@
 # CHANGE LOG
 
+### v0.4.0 (28 Aug 2021)
+
+- fix uploads dir for tests
+- use `req.raw`
+
 ### v0.3.0 (22 Aug 2021)
 
 - remove callbacks from tests
