@@ -1,9 +1,11 @@
-import http from 'http';
-import { rawBody } from '../src'
-import { join, dirname } from 'path'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import assert from 'assert'
 import request from 'supertest'
-import { mkdirSync, readdirSync, rmSync } from 'fs';
-import assert from 'assert';
+import { join, dirname } from 'path'
+import http from 'http'
+import { mkdirSync, readdirSync, rmSync } from 'fs'
+
+import { rawBody } from '../src'
 
 describe('agnostic-body with raw', () => {
   function createApp(bodyOpts = {}) {
@@ -177,8 +179,10 @@ describe('agnostic-body with raw', () => {
       .attach('firstField', 'package.json')
       // .expect('Content-Type', /multipart/)
       .expect(200)
+
     let counter = 0
-    readdirSync(path).forEach((file) => { 
+
+    readdirSync(path).forEach((file) => {      
       if (file === CUSTOM_NAME) ++counter
     })
     assert(counter === 1)
