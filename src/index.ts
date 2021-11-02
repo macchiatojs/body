@@ -11,25 +11,25 @@
  * Module dependencies.
  */
 
-import { IncomingMessage, ServerResponse } from 'http'
-import { Context, Request, Response, Next } from '@macchiatojs/kernel'
 import buddy from 'co-body'
 import forms, { Files, Options } from 'formidable'
-// peerDep. needed with raw Node.js
-import typeIs from 'type-is' 
+import typeIs from 'type-is' // peerDep. needed with raw Node.js
+import { IncomingMessage } from 'http'
+import type { ServerResponse } from 'http'
+import { Request } from '@macchiatojs/kernel'
+import type { Context, Response, Next } from '@macchiatojs/kernel'
 
-export interface MacchiatoRequest extends Request {
-  body?: any;
+export interface MacchiatoRequest<TBody=unknown> extends Request {
+  body?: TBody;
   files?: Files;
 }
 
-export interface RawRequest extends IncomingMessage {
-  body?: any;
+export interface RawRequest<TBody=unknown> extends IncomingMessage {
+  body?: TBody;
   files?: Files;
 }
 
-
-export type BodyRequest = RawRequest | MacchiatoRequest
+export type BodyRequest<T=unknown> = RawRequest<T> | MacchiatoRequest<T>
 
 export interface BodyOptions {
   expressify?: boolean
@@ -72,28 +72,29 @@ function coreRequestBody(opts: BodyOptions = {}) {
   opts.parsedMethods = opts.parsedMethods.map(method => method.toUpperCase())
 
   // co-body parser options [json, form, text].
-  const buddyOptions = {
+  const buddyOptions: { [key:string]: buddy.Options } = {
     json: {
       encoding: opts.encoding,
       limit: opts.jsonLimit,
       strict: opts.jsonStrict,
       returnRawBody: opts.includeUnparsed
-    },
+    } as buddy.Options,
     form: {
       encoding: opts.encoding,
       limit: opts.formLimit,
       queryString: opts.queryString,
       returnRawBody: opts.includeUnparsed
-    },
+    } as buddy.Options,
     text: {
       encoding: opts.encoding,
       limit: opts.textLimit,
       returnRawBody: opts.includeUnparsed
-    }
+    } as buddy.Options
   }
 
 
-  // FIXME: fix limit the json, form and text response when upgrade the kernel to v0.2.0+
+  // FIXME: fix limit the json, form and text response 
+  // when upgrade the kernel from v0.1.0
   return async (req: BodyRequest, next?: Next) => {    
     const request = req instanceof IncomingMessage ? req : req.raw
 
@@ -174,7 +175,7 @@ function coreRequestBody(opts: BodyOptions = {}) {
           ?  formyParser(request, opts.formidable)
           :  !type
             ? Promise.resolve({})
-            : buddyParser(type) 
+            : buddyParser(type)
       )
 
       // parse the request.
@@ -203,10 +204,12 @@ function coreRequestBody(opts: BodyOptions = {}) {
 
 // middleware/hook/helper for raw Node.js
 export function rawBody(opts: BodyOptions) {
-  return (request: IncomingMessage, response: ServerResponse) => coreRequestBody(opts)(request)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  return (request: IncomingMessage, response: ServerResponse): Promise<unknown> => coreRequestBody(opts)(request)
 }
 
 // middleware for Macchiato.js
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function requestBody(opts: BodyOptions) {
   opts.expressify = opts.expressify ?? true
 
