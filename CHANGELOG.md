@@ -1,11 +1,12 @@
 # CHANGE LOG
 
-### v0.5.0 (2 Nov 2021)
+### v0.5.0 (6 Nov 2021)
 
 - fix types and improv code structre.
 - update typescript from v4.3.2 to v4.4.4.
 - update formidable from v1.2.2 to v1.2.4
-- update @macchiatojs/kernel from v0.1.0 to v0.17.1
+- update @macchiatojs/kernel from v0.1.0 to v0.19.0
+- fix CI.
 
 ### v0.4.0 (28 Aug 2021)
 
