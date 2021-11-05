@@ -47,11 +47,11 @@
     "formidable": "1.2.4"
   },
   "peerDependencies": {
-    "@macchiatojs/kernel": "^0.17.1",
+    "@macchiatojs/kernel": "^0.19.0",
     "type-is": "^1.6.18"
   },
   "devDependencies": {
-    "@macchiatojs/kernel": "^0.17.1",
+    "@macchiatojs/kernel": "^0.19.0",
     "@types/co-body": "^6.1.0",
     "@types/formidable": "^1.2.4",
     "@types/mocha": "^9.0.0",
