@@ -1,5 +1,10 @@
 # CHANGE LOG
 
+### v0.6.0 (15 Nov 2021)
+
+- fix limtis options for @macchiatojs.
+- update @macchiatojs/kernel from v0.19.0 to v0.20.1.
+
 ### v0.5.0 (6 Nov 2021)
 
 - fix types and improv code structre.
