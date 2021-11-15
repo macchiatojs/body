@@ -92,10 +92,7 @@ function coreRequestBody(opts: BodyOptions = {}) {
     } as buddy.Options
   }
 
-
-  // FIXME: fix limit the json, form and text response 
-  // when upgrade the kernel from v0.1.0
-  return async (req: BodyRequest, next?: Next) => {    
+  return async (req: BodyRequest, response?: Response, next?: Next) => {    
     const request = req instanceof IncomingMessage ? req : req.raw
 
     // co-body parsers [json, form, text].
@@ -179,7 +176,15 @@ function coreRequestBody(opts: BodyOptions = {}) {
       )
 
       // parse the request.
-      const body = await bodyParser()
+      let body
+      try {
+        body = await bodyParser()
+      } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (response as Response).status = (error as any)['status']
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        body = (error as any)['message']
+      }
 
       // merge the parsed result with the Node.js request object.
       if (type === 'multipart') {
@@ -189,14 +194,14 @@ function coreRequestBody(opts: BodyOptions = {}) {
         request['body'] = body
       }
 
-      // when use macchiatojs with expressify and koaify
-      if(next) {
-        // mapped from rawRequest to request
+      // mapped from rawRequest to request only when use macchiato.js
+      if(req instanceof Request) {
+        // 
         req.body = request['body']
         req.files = request['files']
 
         // go to the next middleware
-        return next()
+        return next?.()
       }
     }
   }
@@ -214,8 +219,8 @@ export function requestBody(opts: BodyOptions) {
   opts.expressify = opts.expressify ?? true
 
   return opts.expressify
-    ? (request: Request, response: Response, next: Next) => coreRequestBody(opts)(request, next)
-    : (context: Context, next: Next) => coreRequestBody(opts)(context.request, next)
+    ? (request: Request, response: Response, next: Next) => coreRequestBody(opts)(request, response, next)
+    : (context: Context, next: Next) => coreRequestBody(opts)(context.request, context.response, next)
 }
 
 /**
