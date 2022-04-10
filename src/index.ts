@@ -12,7 +12,8 @@
  */
 
 import buddy from 'co-body'
-import forms, { Files, Options } from 'formidable'
+import type { Files, Options } from 'formidable'
+import forms from 'formidable'
 import typeIs from 'type-is' // peerDep. needed with raw Node.js
 import { IncomingMessage } from 'http'
 import type { ServerResponse } from 'http'
