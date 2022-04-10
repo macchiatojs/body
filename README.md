@@ -68,6 +68,14 @@ const server = http.createServer(async (request, response) => {
 server.listen(1111);
 ```
 
+#### Note: If you want to use formidable@v1.x.x you 
+
+```
+- import requestBody from "@macchiatojs/body"
++ import requestBody from "@macchiatojs/body/v1"
+```
+
+
 ## `Options`
 
 > Options available for `@macchiatojs/body`. Four custom options, and others are from `raw-body` and `formidable`.
@@ -106,7 +114,7 @@ Uploaded files are accessible via `ctx.request.files`.
 - `maxFieldsSize` **{Integer}** Limits the amount of memory all fields together (except files) can allocate in bytes. If this value is exceeded, an 'error' event is emitted, default `2mb (2 * 1024 * 1024)`
 - `uploadDir` **{String}** Sets the directory for placing file uploads in, default `os.tmpDir()`
 - `keepExtensions` **{Boolean}** Files written to `uploadDir` will include the extensions of the original files, default `false`
-- `hash` **{String}** If you want checksums calculated for incoming files, set this to either `'sha1'` or `'md5'`, default `false`
+- `hashAlgorithm` (`hash` with formidable@v1.x.x) **{String}** If you want checksums calculated for incoming files, set this to either `'sha1'` or `'md5'`, default `false` 
 - `multiples` **{Boolean}** Multiple file uploads or no, default `true`
 - `onFileBegin` **{Function}** Special callback on file begin. The function is executed directly by formidable. It can be used to rename files before saving them to disk. [See the docs](https://github.com/felixge/node-formidable#filebegin)
 
