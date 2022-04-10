@@ -31,7 +31,7 @@ describe('agnostic-body with expressify', () => {
     return await request(createApp().start())
       .post('/')
       .type('json')
-      .send({ name: 'imed' })
+      .send({ originalFilename: 'imed' })
       // .expect('Content-Type', /json/)
       .expect(/imed/)
       .expect(200)
@@ -41,7 +41,7 @@ describe('agnostic-body with expressify', () => {
     return await request(createApp().start())
       .post('/')
       .type('form')
-      .send({ name: 'imed' })
+      .send({ originalFilename: 'imed' })
       // .expect('Content-Type', /urlencoded/)
       .expect(/imed/)
       .expect(200)
@@ -161,9 +161,9 @@ describe('agnostic-body with expressify', () => {
         keepExtensions: true,
         uploadDir: './test/uploads',
         onFileBegin:  (name, file) => {
-          file.name = CUSTOM_NAME
-          const folder = dirname(file.path)
-          file.path = join(folder, file.name)
+          file.newFilename = CUSTOM_NAME
+          const folder = dirname(file.filepath)
+          file.filepath = join(folder, file.newFilename)
         }
       }
     }).start())
@@ -185,7 +185,7 @@ describe('agnostic-body with expressify', () => {
     return await request(createApp({ jsonLimit: 10 /* bytes */ }).start())
       .post('/')
       .type('json')
-      .send({ name: 'some-long-name-for-limit' })
+      .send({ originalFilename: 'some-long-name-for-limit' })
       // .expect('Content-Type', /json/)
       .expect(/request entity too large/)
       .expect(413)
@@ -195,7 +195,7 @@ describe('agnostic-body with expressify', () => {
     return await request(createApp({ formLimit: 10 }).start())
     .post('/')
     .type('form')
-    .send({ name: 'some-long-name-for-limit' })
+    .send({ originalFilename: 'some-long-name-for-limit' })
     // .expect('Content-Type', /urlencoded/)
     .expect(/request entity too large/)
     .expect(413)

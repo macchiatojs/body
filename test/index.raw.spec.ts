@@ -38,7 +38,7 @@ describe('agnostic-body with raw', () => {
     request(createApp())
       .post('/')
       .type('json')
-      .send({ name: 'imed' })
+      .send({ originalFilename: 'imed' })
       // .expect('Content-Type', /json/)
       .expect(/imed/)
       .expect(200);
@@ -48,7 +48,7 @@ describe('agnostic-body with raw', () => {
     request(createApp())
       .post('/')
       .type('form')
-      .send({ name: 'imed' })
+      .send({ originalFilename: 'imed' })
       // .expect('Content-Type', /urlencoded/)
       .expect(/imed/)
       .expect(200);
@@ -168,9 +168,9 @@ describe('agnostic-body with raw', () => {
         keepExtensions: true,
         uploadDir: './test/uploads',
         onFileBegin:  (name, file) => {
-          file.name = CUSTOM_NAME
-          const folder = dirname(file.path);
-          file.path = join(folder, file.name);
+          file.newFilename = CUSTOM_NAME
+          const folder = dirname(file.filepath);
+          file.filepath = join(folder, file.newFilename);
         }
       }
     }))
@@ -192,7 +192,7 @@ describe('agnostic-body with raw', () => {
     return await request(createApp({ jsonLimit: 10 /* bytes */ }))
       .post('/')
       .type('json')
-      .send({ name: 'some-long-name-for-limit' })
+      .send({ originalFilename: 'some-long-name-for-limit' })
       // .expect('Content-Type', /json/)
       .expect(/some thing long .../)
       .expect(500)
@@ -202,7 +202,7 @@ describe('agnostic-body with raw', () => {
     return await request(createApp({ formLimit: 10 }))
       .post('/')
       .type('form')
-      .send({ name: 'some-long-name-for-limit' })
+      .send({ originalFilename: 'some-long-name-for-limit' })
       // .expect('Content-Type', /urlencoded/)
       .expect(/some thing long .../)
       .expect(500)
