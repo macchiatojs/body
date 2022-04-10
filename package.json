@@ -44,16 +44,16 @@
   },
   "dependencies": {
     "co-body": "^6.1.0",
-    "formidable": "1.2.4"
+    "formidable": "^2.0.1"
   },
   "peerDependencies": {
-    "@macchiatojs/kernel": "^0.20.1",
+    "@macchiatojs/kernel": "^0.24.0",
     "type-is": "^1.6.18"
   },
   "devDependencies": {
-    "@macchiatojs/kernel": "^0.20.1",
+    "@macchiatojs/kernel": "^0.24.0",
     "@types/co-body": "^6.1.0",
-    "@types/formidable": "^1.2.4",
+    "@types/formidable": "^2.0.4",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.11.6",
     "@types/supertest": "^2.0.11",
