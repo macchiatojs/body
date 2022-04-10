@@ -1,0 +1,79 @@
+{
+  "name": "@macchiatojs/body",
+  "version": "0.6.0",
+  "description": "A full-featured macchiatojs body parser (with raw Node.js support) 🎳.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint . --ext .ts",
+    "pretest": "rimraf dist",
+    "test": "mocha --recursive --exit",
+    "build": "tsc -d",
+    "precoverage": "rimraf coverage .nyc_output",
+    "coverage": "nyc npm run test",
+    "postcoverage": "npm run build",
+    "preci": "npm run lint",
+    "ci": "npm run coverage",
+    "postversion": "git push && git push --tags",
+    "prepublishOnly": "npm run ci",
+    "preversion": "npm run ci"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/macchiatojs/body.git"
+  },
+  "keywords": [
+    "body",
+    "bodyparser",
+    "multipart",
+    "urlencoded",
+    "json",
+    "form",
+    "middleware",
+    "macchiatojs",
+    "raw-node.js"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "imed jaberi",
+    "email": "imed-jaberi@outlook.com",
+    "url": "https://www.3imed-jaberi.com"
+  },
+  "dependencies": {
+    "co-body": "^6.1.0",
+    "formidable": "^2.0.1",
+    "formidable-v1": "npm:formidable@1.2.4"
+  },
+  "peerDependencies": {
+    "@macchiatojs/kernel": "^0.24.0",
+    "type-is": "^1.6.18"
+  },
+  "devDependencies": {
+    "@macchiatojs/kernel": "^0.24.0",
+    "@types/co-body": "^6.1.0",
+    "@types/formidable": "^2.0.4",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.11.6",
+    "@types/supertest": "^2.0.11",
+    "@typescript-eslint/eslint-plugin": "^4.25.0",
+    "@typescript-eslint/parser": "^4.25.0",
+    "eslint": "^7.27.0",
+    "mocha": "^9.1.3",
+    "nyc": "^15.1.0",
+    "rimraf": "^3.0.2",
+    "supertest": "^6.1.3",
+    "ts-node": "^10.4.0",
+    "type-is": "^1.6.18",
+    "typescript": "^4.4.4"
+  },
+  "engines": {
+    "node": ">= 14"
+  },
+  "bugs": {
+    "url": "https://github.com/macchiatojs/body/issues"
+  },
+  "homepage": "https://github.com/macchiatojs/body#readme"
+}
