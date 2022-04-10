@@ -68,13 +68,21 @@ const server = http.createServer(async (request, response) => {
 server.listen(1111);
 ```
 
-#### Note: If you want to use formidable@v1.x.x you 
+#### Note
 
-```
-- import requestBody from "@macchiatojs/body"
-+ import requestBody from "@macchiatojs/body/v1"
+If you want to use `formidable@v1.x.x` you should replace you're import from
+
+```typescript
+import requestBody from "@macchiatojs/body"
 ```
 
+to
+
+```typescript
+import requestBody from "@macchiatojs/body/v1"
+```
+
+> When we release the `1.0.0` we will drop support for `formidable@v1.x.x`.
 
 ## `Options`
 
