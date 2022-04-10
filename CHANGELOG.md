@@ -1,8 +1,8 @@
 # CHANGE LOG
 
-### v1.0.0 (10 Apr 2022)
+### v0.7.0 (10 Apr 2022)
 
-- support formidable@v2.x.x [breaking].
+- support formidable@v2.x.x.
 - update @macchiatojs/kernel from v0.20.1 to v0.24.0.
 
 ### v0.6.0 (15 Nov 2021)
