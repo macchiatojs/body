@@ -1,5 +1,10 @@
 # CHANGE LOG
 
+### v1.0.0 - unreleased
+
+- support formidable@v2.x.x [breaking].
+- update @macchiatojs/kernel from v0.20.1 to v0.24.0.
+
 ### v0.6.0 (15 Nov 2021)
 
 - fix limtis options for @macchiatojs.
